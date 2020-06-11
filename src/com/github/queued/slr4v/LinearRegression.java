@@ -5,10 +5,7 @@ import com.github.queued.slr4v.utils.DatasetParser;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -84,13 +81,39 @@ public class LinearRegression {
         return newCases + y.get(y.size() - 1);
     }
 
+    public static int getClosest(List<Integer> sortedList, int key) {
+        List<Long> newList = new ArrayList<>();
+        for (Integer confirmed : sortedList) {
+            newList.add(confirmed.longValue());
+        }
+
+        int index = Collections.binarySearch(newList, (long) key);
+        Long closest;
+        if (index >= 0) {
+            closest = newList.get(index);
+        } else {
+            index = -index - 1;
+            if (index == 0){
+                closest = newList.get(index);
+            } else if (index == sortedList.size()){
+                closest = newList.get(index - 1);
+            } else {
+                Long prev = newList.get(index - 1);
+                Long next = newList.get(index);
+                closest = ((key - prev) < (next - key)) ? prev : next;
+            }
+        }
+
+        return (int) Math.floor(closest);
+    }
+
     public static void main(String[] args) throws IOException {
         CURRENT_PATH = args.length > 0 ? args[0] : ".";
         bootstrap();
 
         final int dayToPredict = x.get(x.size() - 1) + 1; // only works for "tomorrow" predictions
         predictedValue = (int) predictForValue(dayToPredict).longValue();
-        predictedDiff = y.get(y.size() - 1) - y.get(y.indexOf(predictedValue));
+        predictedDiff = y.get(y.size() - 1) - y.get(y.indexOf(getClosest(y, predictedValue)));
         newPossibleInfections = (int) (predictedDiff * Config.ISOLATION_RATE / Config.TRANSMISSION_RATE);
         final int totalCases = getTotalCases(0);
         final int newTotalCases = getTotalCases(newPossibleInfections);
