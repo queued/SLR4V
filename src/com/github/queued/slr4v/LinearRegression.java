@@ -85,7 +85,7 @@ public class LinearRegression {
     }
 
     public static void main(String[] args) throws IOException {
-        CURRENT_PATH = args[0];
+        CURRENT_PATH = args[0].isEmpty() ? "." : args[0];
         bootstrap();
 
         final int dayToPredict = x.get(x.size() - 1) + 1; // only works for "tomorrow" predictions
@@ -105,7 +105,7 @@ public class LinearRegression {
         double maxInfections = Config.POPULATION * Config.ISOLATION_RATE / Config.TRANSMISSION_RATE;
         double maxInfectionsPercentage = (maxInfections * 100) / Config.POPULATION;
 
-        System.out.println("Linear Regression / Viçosa - MG");
+        System.out.println("\nLinear Regression / Viçosa - MG");
         System.out.println("------------------------------------------");
         System.out.println("Total Population: " + Config.POPULATION);
         System.out.println("Maximum Infections: " + (int) Math.floor(maxInfections)

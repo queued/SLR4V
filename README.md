@@ -3,7 +3,7 @@ Just a simple script that predicts the number of cases for "tomorrow". This is a
 
 ## Dependencies
 You will need the following:
-- JDK 13+
+- JDK 14
 - Ant 1.8.2+
 - Git 2.24+
 
