@@ -125,7 +125,7 @@ public class LinearRegression {
         SimpleDateFormat format1 = new SimpleDateFormat("dd/MM/yyyy");
         String dateStr = format1.format(date);
 
-        double maxInfections = Config.POPULATION * Config.ISOLATION_RATE / Config.TRANSMISSION_RATE;
+        double maxInfections = Config.POPULATION * Config.ISOLATION_RATE / (y.get(y.size() - 1) * Config.TRANSMISSION_RATE);
         double maxInfectionsPercentage = (maxInfections * 100) / Config.POPULATION;
 
         System.out.println("\nLinear Regression / Viçosa - MG");
