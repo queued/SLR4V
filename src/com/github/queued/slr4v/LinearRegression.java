@@ -85,7 +85,7 @@ public class LinearRegression {
     }
 
     public static void main(String[] args) throws IOException {
-        CURRENT_PATH = args[0].isEmpty() ? "." : args[0];
+        CURRENT_PATH = args.length > 0 ? args[0] : ".";
         bootstrap();
 
         final int dayToPredict = x.get(x.size() - 1) + 1; // only works for "tomorrow" predictions
