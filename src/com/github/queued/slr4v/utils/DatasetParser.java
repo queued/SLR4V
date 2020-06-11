@@ -1,6 +1,6 @@
-package com.github.queued.slra4v.utils;
+package com.github.queued.slr4v.utils;
 
-import com.github.queued.slra4v.entity.Day;
+import com.github.queued.slr4v.entity.Day;
 
 import java.io.IOException;
 import java.nio.file.Files;

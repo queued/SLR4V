@@ -1,8 +1,7 @@
-package com.github.queued.slra4v;
+package com.github.queued.slr4v;
 
-
-import com.github.queued.slra4v.entity.Day;
-import com.github.queued.slra4v.utils.DatasetParser;
+import com.github.queued.slr4v.entity.Day;
+import com.github.queued.slr4v.utils.DatasetParser;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -14,6 +13,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class LinearRegression {
+    public static String CURRENT_PATH;
+
     public static List<Integer> x = new ArrayList<>();
     public static List<Integer> y = new ArrayList<>();
 
@@ -70,7 +71,7 @@ public class LinearRegression {
 
     private static void bootstrap() throws IOException {
         Config.getInstance();
-        List<Day> days = DatasetParser.getArrayListFromCSV("./datasets/viçosa.csv");
+        List<Day> days = DatasetParser.getArrayListFromCSV(CURRENT_PATH + "/datasets/viçosa.csv");
 
         for (Day day : days) {
             x.add(day.getDayNumber());
@@ -84,6 +85,7 @@ public class LinearRegression {
     }
 
     public static void main(String[] args) throws IOException {
+        CURRENT_PATH = args[0];
         bootstrap();
 
         final int dayToPredict = x.get(x.size() - 1) + 1; // only works for "tomorrow" predictions
@@ -114,6 +116,6 @@ public class LinearRegression {
         System.out.println("Total cases (on " + dateStr + "): ~" + newTotalCases + " (" + String.format("%.02f", (double) newTotalCases * 100 / Config.POPULATION) + "% of the total population)");
         System.out.println("Total cases (TODAY): " + y.get(y.size() - 1) + " (" + String.format("%.02f", (double) totalCases * 100 / Config.POPULATION) + "% of the total population)");
         System.out.println("------------------------------------------");
-        System.out.println("Formula: Predicted[" + predictedValue + "] * Isolation Rate[" + Config.ISOLATION_RATE + "] / Transmission Rate[" + Config.TRANSMISSION_RATE + "]");
+        System.out.println("Formula: Predicted[" + predictedValue + "] * Isolation Rate[" + Config.ISOLATION_RATE + "] / Transmission Rate[" + Config.TRANSMISSION_RATE + "]\n");
     }
 }

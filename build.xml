@@ -28,8 +28,8 @@
         </fail>
 
         <!-- Java -->
-        <available classname="java.util.stream.Stream" property="JDK13.present"/>
-        <fail unless="JDK13.present" message="Java 13 is required. But your version is Java ${ant.java.version} and probably JDK is not installed."/>
+        <available classname="java.util.stream.Stream" property="JDK14.present"/>
+        <fail unless="JDK14.present" message="Java 14 is required. But your version is Java ${ant.java.version} and probably JDK is not installed."/>
 
         <!-- Git -->
         <available file=".git" type="dir" property="git.present"/>
@@ -88,7 +88,7 @@
     </target>
 
     <target name="compile" depends="dist" description="Compile the source.">
-        <javac srcdir="${src}" destdir="${build.bin}" compiler="modern" debug="true" debuglevel="lines,vars,source" includeantruntime="false" source="13" target="13" encoding="UTF-8"/>
+        <javac srcdir="${src}" destdir="${build.bin}" compiler="modern" debug="true" debuglevel="lines,vars,source" includeantruntime="false" source="14" target="14" encoding="UTF-8"/>
     </target>
 
     <target name="jar" depends="compile" description="Create the jar files.">
@@ -105,7 +105,7 @@
                 <attribute name="Built-Hash" value="${commit.short}"/>
                 <attribute name="Built-Commit" value="${commit.long}"/>
                 <attribute name="Implementation-URL" value="https://twitter.com/mirandizimo"/>
-                <attribute name="Main-Class" value="com.github.queued.slra4v.LinearRegression"/>
+                <attribute name="Main-Class" value="com.github.queued.slr4v.LinearRegression"/>
             </manifest>
         </jar>
     </target>

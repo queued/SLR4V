@@ -1,4 +1,4 @@
-package com.github.queued.slra4v.utils;
+package com.github.queued.slr4v.utils;
 
 import java.io.File;
 import java.io.FileInputStream;

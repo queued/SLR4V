@@ -1,12 +1,12 @@
-package com.github.queued.slra4v;
+package com.github.queued.slr4v;
 
-import com.github.queued.slra4v.utils.PropertiesParser;
+import com.github.queued.slr4v.utils.PropertiesParser;
 
 import java.util.Calendar;
 
 public class Config
 {
-    private static final String VARIABLES_FILE = "./dist/viçosa.properties";
+    private static final String VARIABLES_FILE = LinearRegression.CURRENT_PATH + "/viçosa.properties";
 
     public static int POPULATION;
     public static double TRANSMISSION_RATE;
