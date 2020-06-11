@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Statistical Linear Regression 4 Viçosa" default="finish" basedir=".">
+    <description>
+        This script will build the La2Eden High Five project.
+    </description>
+
+    <property name="prefix_version" value="0.1"/>
+    <property name="suffix_version" value="-alpha"/>
+
+    <property name="build" location="./build"/>
+    <property name="build.bin" location="${build}/bin"/>
+    <property name="build.dist" location="${build}/dist"/>
+    <property name="build.dist.installer" location="${build.dist}/db_installer"/>
+    <property name="dist" location="dist"/>
+    <property name="libs" location="${dist}/libs"/>
+    <property name="src" location="src"/>
+
+    <property name="changelog.format" value="* [%h] %aN (%cD)%n-> %B%n"/>
+    <property name="changelog.file" location="${build}/changelog.txt"/>
+
+    <path id="classpath">
+        <fileset dir="${libs}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="checkRequirements" description="Check Requirements.">
+        <!-- Ant -->
+        <fail message="Ant 1.8.2 is required. But your version is ${ant.version} and if you are using Eclipse probably is outdated.">
+            <condition>
+                <not>
+                    <antversion atleast="1.8.2"/>
+                </not>
+            </condition>
+        </fail>
+
+        <!-- Java -->
+        <available classname="java.util.stream.Stream" property="JDK13.present"/>
+        <fail unless="JDK13.present" message="Java 13 is required. But your version is Java ${ant.java.version} and probably JDK is not installed."/>
+
+        <!-- Git -->
+        <available file=".git" type="dir" property="git.present"/>
+        <fail unless="git.present" message="You need the '.git' repository in order to build La2Eden. No git repo found!"/>
+    </target>
+
+    <target name="getDateAndVersion" depends="checkRequirements" description="Get Date and Version.">
+        <tstamp>
+            <format property="timestamp" pattern="dd/MM/yyyy HH:mm"/>
+        </tstamp>
+
+        <exec executable="git" outputproperty="commit.short" failifexecutionfails="false" errorproperty="">
+            <arg value="log"/>
+            <arg value="--pretty=format:%h"/>
+            <arg value="-n"/>
+            <arg value="1"/>
+        </exec>
+        <exec executable="git" outputproperty="commit.long" failifexecutionfails="false" errorproperty="">
+            <arg value="log"/>
+            <arg value="--pretty=format:%H"/>
+            <arg value="-n"/>
+            <arg value="1"/>
+        </exec>
+        <exec executable="git" outputproperty="version" failifexecutionfails="false" errorproperty="">
+            <arg value="rev-list"/>
+            <arg value="--count"/>
+            <arg value="master"/>
+        </exec>
+
+        <echo message="Build version: ${prefix_version}.${version}${suffix_version}" level="info"/>
+        <echo message="Build date: ${timestamp}" level="info"/>
+        <echo message="Build from commit: ${commit.short}" level="info"/>
+    </target>
+
+    <target name="init" depends="getDateAndVersion" description="Create the output directories.">
+        <delete dir="${build}" quiet="true"/>
+
+        <mkdir dir="${build}"/>
+        <mkdir dir="${build.bin}"/>
+    </target>
+
+    <target name="getChangelog" depends="init" description="Generates a changelog from the project repository">
+        <exec executable="git" outputproperty="changelog" failifexecutionfails="false" errorproperty="">
+            <arg value="log"/>
+            <arg value="--format=format:${changelog.format}"/>
+            <arg value="--all"/>
+        </exec>
+
+        <concat destfile="${changelog.file}">${changelog}</concat>
+    </target>
+
+    <target name="dist" depends="getChangelog" description="Export the files to the output directory.">
+        <sync todir="${build.dist}" includeemptydirs="true">
+            <fileset dir="dist"/>
+        </sync>
+    </target>
+
+    <target name="compile" depends="dist" description="Compile the source.">
+        <javac srcdir="${src}" classpathref="classpath" destdir="${build.bin}" compiler="modern" debug="true" debuglevel="lines,vars,source" includeantruntime="false" source="13" target="13" encoding="UTF-8"/>
+    </target>
+
+    <target name="jar" depends="compile" description="Create the jar files.">
+        <tstamp>
+            <format property="time.stamp" pattern="dd-MM-yyyy HH:mm:ss"/>
+        </tstamp>
+
+        <jar destfile="${dist}/SLR4V.jar" level="9">
+            <fileset dir="${build.bin}"/>
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Built-Date" value="${time.stamp}"/>
+                <attribute name="Built-Version" value="${prefix_version}${version}${suffix_version}"/>
+                <attribute name="Built-Hash" value="${commit.short}"/>
+                <attribute name="Built-Commit" value="${commit.long}"/>
+                <attribute name="Implementation-URL" value="https://twitter.com/mirandizimo"/>
+                <attribute name="Main-Class" value="com.github.queued.slra4v.LinearRegression"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="zip" depends="jar" description="Adding the compiled jars to the Zip file.">
+        <zip destfile="${build}/SLR4V.zip" basedir="${build.dist}" level="9"/>
+    </target>
+
+    <target name="adding-changelog" depends="zip" description="Adding the changelog to the Zip file.">
+        <zip destfile="${build}/SLR4V.zip" basedir="${build}" includes="changelog.txt" update="true" level="9"/>
+    </target>
+
+    <target name="adding-readme" depends="adding-changelog" description="Adding README.md to the Zip file.">
+        <zip destfile="${build}/SLR4V.zip" basedir="." includes="README.md" update="true" level="9"/>
+    </target>
+
+    <target name="adding-license" depends="adding-readme" description="Adding license.txt to the Zip file.">
+        <zip destfile="${build}/SLR4V.zip" basedir="." includes="LICENSE.txt" update="true" level="9"/>
+    </target>
+
+    <target name="finish" depends="adding-license" description="Cleaning the build folder.">
+        <delete dir="${build.dist}"/>
+        <delete dir="${build.bin}"/>
+        <delete file="${changelog.file}"/>
+
+        <echo message="Build finished. Grab your .zip file inside the build folder." level="info"/>
+    </target>
+</project>
