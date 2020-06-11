@@ -12,17 +12,10 @@
     <property name="build.dist" location="${build}/dist"/>
     <property name="build.dist.installer" location="${build.dist}/db_installer"/>
     <property name="dist" location="dist"/>
-    <property name="libs" location="${dist}/libs"/>
     <property name="src" location="src"/>
 
     <property name="changelog.format" value="* [%h] %aN (%cD)%n-> %B%n"/>
     <property name="changelog.file" location="${build}/changelog.txt"/>
-
-    <path id="classpath">
-        <fileset dir="${libs}">
-            <include name="*.jar"/>
-        </fileset>
-    </path>
 
     <target name="checkRequirements" description="Check Requirements.">
         <!-- Ant -->
@@ -95,7 +88,7 @@
     </target>
 
     <target name="compile" depends="dist" description="Compile the source.">
-        <javac srcdir="${src}" classpathref="classpath" destdir="${build.bin}" compiler="modern" debug="true" debuglevel="lines,vars,source" includeantruntime="false" source="13" target="13" encoding="UTF-8"/>
+        <javac srcdir="${src}" destdir="${build.bin}" compiler="modern" debug="true" debuglevel="lines,vars,source" includeantruntime="false" source="13" target="13" encoding="UTF-8"/>
     </target>
 
     <target name="jar" depends="compile" description="Create the jar files.">
@@ -103,7 +96,7 @@
             <format property="time.stamp" pattern="dd-MM-yyyy HH:mm:ss"/>
         </tstamp>
 
-        <jar destfile="${dist}/SLR4V.jar" level="9">
+        <jar destfile="${build.dist}/SLR4V.jar" level="9">
             <fileset dir="${build.bin}"/>
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
