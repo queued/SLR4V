@@ -14,6 +14,7 @@ public class LinearRegression {
 
     public static List<Integer> x = new ArrayList<>();
     public static List<Integer> y = new ArrayList<>();
+    public static List<Day> _days = new ArrayList<>();
 
     public static int predictedDiff;
     public static int predictedValue;
@@ -68,9 +69,9 @@ public class LinearRegression {
 
     private static void bootstrap() throws IOException {
         Config.getInstance();
-        List<Day> days = DatasetParser.getArrayListFromCSV(CURRENT_PATH + "/datasets/viçosa.csv");
+        _days = DatasetParser.getArrayListFromCSV(CURRENT_PATH + "/datasets/viçosa.csv");
 
-        for (Day day : days) {
+        for (Day day : _days) {
             x.add(day.getDayNumber());
             y.add(day.getConfirmedCases());
         }
@@ -79,6 +80,11 @@ public class LinearRegression {
     public static int getTotalCases(int newCases)
     {
         return newCases + y.get(y.size() - 1);
+    }
+
+    public static int getActiveCases()
+    {
+        return _days.get(_days.size() - 1).getActiveCases();
     }
 
     public static int getClosest(List<Integer> sortedList, int key) {
@@ -125,19 +131,25 @@ public class LinearRegression {
         SimpleDateFormat format1 = new SimpleDateFormat("dd/MM/yyyy");
         String dateStr = format1.format(date);
 
-        double maxInfections = Config.POPULATION * Config.ISOLATION_RATE / (y.get(y.size() - 1) * Config.TRANSMISSION_RATE);
+        double maxInfections = Math.min(
+                // A
+                Config.POPULATION,
+                // B
+                Config.POPULATION * Config.ISOLATION_RATE / ((totalCases - getActiveCases()) * Config.TRANSMISSION_RATE)
+        );
         double maxInfectionsPercentage = (maxInfections * 100) / Config.POPULATION;
 
         System.out.println("\nLinear Regression / Viçosa - MG");
         System.out.println("------------------------------------------");
         System.out.println("Total Population: " + Config.POPULATION);
-        System.out.println("Maximum Infections: " + (int) Math.floor(maxInfections)
+        System.out.println("Max. Infections (worst scenario): " + (int) Math.floor(maxInfections)
                 + " (" + String.format("%.02f", maxInfectionsPercentage) + "% of the total population)"
         );
         System.out.println("------------------------------------------");
         System.out.println("New cases (on " + dateStr + "): +" + newPossibleInfections);
         System.out.println("Total cases (on " + dateStr + "): ~" + newTotalCases + " (" + String.format("%.02f", (double) newTotalCases * 100 / Config.POPULATION) + "% of the total population)");
-        System.out.println("Total cases (TODAY): " + y.get(y.size() - 1) + " (" + String.format("%.02f", (double) totalCases * 100 / Config.POPULATION) + "% of the total population)");
+        System.out.println("Total cases (TODAY): " + totalCases + " (" + String.format("%.02f", (double) totalCases * 100 / Config.POPULATION) + "% of the total population)");
+        System.out.println("Active cases (TODAY): " + getActiveCases() + " (" + String.format("%.02f", (double) getActiveCases() * 100 / Config.POPULATION) + "% of the total population)");
         System.out.println("------------------------------------------");
         System.out.println("Formula: Predicted[" + predictedValue + "] * Isolation Rate[" + Config.ISOLATION_RATE + "] / Transmission Rate[" + Config.TRANSMISSION_RATE + "]\n");
     }
