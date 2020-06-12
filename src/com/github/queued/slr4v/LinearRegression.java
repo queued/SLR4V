@@ -117,7 +117,7 @@ public class LinearRegression {
         CURRENT_PATH = args.length > 0 ? args[0] : ".";
         bootstrap();
 
-        final int dayToPredict = x.get(x.size() - 1) + 1; // only works for "tomorrow" predictions
+        final int dayToPredict = x.size() + 1; // only works for "tomorrow" predictions
         predictedValue = (int) predictForValue(dayToPredict).longValue();
         predictedDiff = y.get(y.size() - 1) - y.get(y.indexOf(getClosest(y, predictedValue)));
         newPossibleInfections = (int) (predictedDiff * Config.ISOLATION_RATE / Config.TRANSMISSION_RATE);
