@@ -8,7 +8,7 @@ You will need the following:
 - Git 2.24+
 
 ## Current Dataset
-This repository contains the dataset filled accordingly until **11/06/2020** _([report 92](https://twitter.com/prefsvicosa/status/1271197046276587520) from the city [website](https://www.vicosa.mg.gov.br/detalhe-da-materia/info/tudo-sobre-o-coronavirus-covid-19-em-vicosa-mg/82157))_
+This repository contains the dataset filled accordingly until **16/06/2020** _([report 97](https://twitter.com/prefsvicosa/status/1271197046276587520) from the city [website](https://www.vicosa.mg.gov.br/detalhe-da-materia/info/tudo-sobre-o-coronavirus-covid-19-em-vicosa-mg/82157))_
 
 ## Build
 Just run ```ant build``` in your terminal (within the project directory).
