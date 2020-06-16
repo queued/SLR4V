@@ -6,7 +6,8 @@ import java.util.Calendar;
 
 public class Config
 {
-    private static final String VARIABLES_FILE = LinearRegression.CURRENT_PATH + "/viçosa.properties";
+    private static String PATH = ".";
+    private static final String VARIABLES_FILE = "viçosa.properties";
 
     public static int POPULATION;
     public static double TRANSMISSION_RATE;
@@ -18,9 +19,14 @@ public class Config
         load();
     }
 
+    public static void setPath(String path)
+    {
+        PATH = path;
+    }
+
     public void load()
     {
-        final PropertiesParser settings = new PropertiesParser(VARIABLES_FILE);
+        final PropertiesParser settings = new PropertiesParser(PATH + "/" + VARIABLES_FILE);
 
         POPULATION = settings.getInt("Population", 78846);
         TRANSMISSION_RATE = settings.getDouble("TransmissionRate", 1.4);

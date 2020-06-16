@@ -1,4 +1,4 @@
-package com.github.queued.slr4v.entity;
+package com.github.queued.slr4v.model.entity;
 
 public class Day
 {

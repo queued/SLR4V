@@ -1,30 +1,30 @@
 package com.github.queued.slr4v;
 
-import com.github.queued.slr4v.entity.Day;
+import com.github.queued.slr4v.model.entity.Day;
 import com.github.queued.slr4v.utils.DatasetParser;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class LinearRegression {
-    public static String CURRENT_PATH;
-
     public static List<Integer> x = new ArrayList<>();
     public static List<Integer> y = new ArrayList<>();
     public static List<Day> _days = new ArrayList<>();
 
     public static int predictedDiff;
     public static int predictedValue;
-    public static int newPossibleInfections;
+    public static double newPossibleInfections;
 
     private static Double predictForValue(int predictForDependentVariable) {
         if (x.size() != y.size())
             throw new IllegalStateException("Must have equal X and Y data points");
 
-        Integer numberOfDataValues = x.size();
+        int numberOfDataValues = x.size();
 
         List<Double> xSquared = x
                 .stream()
@@ -36,40 +36,40 @@ public class LinearRegression {
                 .boxed()
                 .collect(Collectors.toList());
 
-        Integer xSummed = x
+        int xSummed = x
                 .stream()
-                .reduce((prev, next) -> prev + next)
+                .reduce(Integer::sum)
                 .get();
 
-        Integer ySummed = y
+        int ySummed = y
                 .stream()
-                .reduce((prev, next) -> prev + next)
+                .reduce(Integer::sum)
                 .get();
 
-        Double sumOfXSquared = xSquared
+        double sumOfXSquared = xSquared
                 .stream()
-                .reduce((prev, next) -> prev + next)
+                .reduce(Double::sum)
                 .get();
 
-        Integer sumOfXMultipliedByY = xMultipliedByY
+        int sumOfXMultipliedByY = xMultipliedByY
                 .stream()
-                .reduce((prev, next) -> prev + next)
+                .reduce(Integer::sum)
                 .get();
 
         int slopeNominator = numberOfDataValues * sumOfXMultipliedByY - ySummed * xSummed;
-        Double slopeDenominator = numberOfDataValues * sumOfXSquared - Math.pow(xSummed, 2);
-        Double slope = slopeNominator / slopeDenominator;
+        double slopeDenominator = numberOfDataValues * sumOfXSquared - Math.pow(xSummed, 2);
+        double slope = slopeNominator / slopeDenominator;
 
         double interceptNominator = ySummed - slope * xSummed;
-        double interceptDenominator = numberOfDataValues;
-        Double intercept = interceptNominator / interceptDenominator;
+        double intercept = interceptNominator / (double) numberOfDataValues;
 
         return (slope * predictForDependentVariable) + intercept;
     }
 
-    private static void bootstrap() throws IOException {
+    private static void bootstrap(String cfgPath) throws IOException {
+        Config.setPath(cfgPath);
         Config.getInstance();
-        _days = DatasetParser.getArrayListFromCSV(CURRENT_PATH + "/datasets/viçosa.csv");
+        _days = DatasetParser.getArrayListFromCSV(cfgPath + "/datasets/viçosa.csv");
 
         for (Day day : _days) {
             x.add(day.getDayNumber());
@@ -114,15 +114,16 @@ public class LinearRegression {
     }
 
     public static void main(String[] args) throws IOException {
-        CURRENT_PATH = args.length > 0 ? args[0] : ".";
-        bootstrap();
+        bootstrap(args.length > 0 ? args[0] : ".");
 
         final int dayToPredict = x.size() + 1; // only works for "tomorrow" predictions
-        predictedValue = (int) predictForValue(dayToPredict).longValue();
-        predictedDiff = y.get(y.size() - 1) - y.get(y.indexOf(getClosest(y, predictedValue)));
-        newPossibleInfections = (int) (predictedDiff * Config.ISOLATION_RATE / Config.TRANSMISSION_RATE);
+        predictedValue = predictForValue(dayToPredict).intValue();
+        predictedDiff = y.get(y.size() - 1) - getClosest(y, predictedValue);
+        newPossibleInfections = (predictedDiff - (predictedDiff * Config.ISOLATION_RATE)) / Config.TRANSMISSION_RATE;
         final int totalCases = getTotalCases(0);
-        final int newTotalCases = getTotalCases(newPossibleInfections);
+        final int newTotalCases = getTotalCases((int) newPossibleInfections);
+        BigDecimal diffDecimal = BigDecimal.valueOf(newPossibleInfections - Math.floor(newPossibleInfections));
+        diffDecimal = diffDecimal.setScale(2, RoundingMode.HALF_UP);
 
         Calendar cal = Config.FIRST_CONFIRMED_CASE_DATE;
         cal.add(Calendar.DATE, dayToPredict - 4);
@@ -135,22 +136,26 @@ public class LinearRegression {
                 // A
                 Config.POPULATION,
                 // B
-                Config.POPULATION * Config.ISOLATION_RATE / ((totalCases - getActiveCases()) * Config.TRANSMISSION_RATE)
+                (Config.POPULATION - (Config.POPULATION * Config.ISOLATION_RATE)) / ((totalCases - getActiveCases()) * Config.TRANSMISSION_RATE)
         );
         double maxInfectionsPercentage = (maxInfections * 100) / Config.POPULATION;
 
         System.out.println("\nLinear Regression / Viçosa - MG");
         System.out.println("------------------------------------------");
         System.out.println("Total Population: " + Config.POPULATION);
-        System.out.println("Max. Infections (worst scenario): " + (int) Math.floor(maxInfections)
+        System.out.println("Max. Infections (" + (int) (Config.ISOLATION_RATE * 100) + "% Isolation Rate): " + (int) Math.floor(maxInfections)
                 + " (" + String.format("%.02f", maxInfectionsPercentage) + "% of the total population)"
         );
         System.out.println("------------------------------------------");
-        System.out.println("New cases (on " + dateStr + "): +" + newPossibleInfections);
-        System.out.println("Total cases (on " + dateStr + "): ~" + newTotalCases + " (" + String.format("%.02f", (double) newTotalCases * 100 / Config.POPULATION) + "% of the total population)");
-        System.out.println("Total cases (TODAY): " + totalCases + " (" + String.format("%.02f", (double) totalCases * 100 / Config.POPULATION) + "% of the total population)");
-        System.out.println("Active cases (TODAY): " + getActiveCases() + " (" + String.format("%.02f", (double) getActiveCases() * 100 / Config.POPULATION) + "% of the total population)");
+        System.out.println(String.format("Error Difference: ~%d", (int) Math.exp(diffDecimal.intValue())));
+        System.out.println("New Cases (on " + dateStr + "): +" + (int) newPossibleInfections);
+        System.out.println("Total Cases (on " + dateStr + "): ~" + newTotalCases + " (" + String.format("%.02f", (double) newTotalCases * 100 / Config.POPULATION) + "% of the total population)");
+        System.out.println("Total Cases (TODAY): " + totalCases + " (" + String.format("%.02f", (double) totalCases * 100 / Config.POPULATION) + "% of the total population)");
+        System.out.println("Active Cases (TODAY): " + getActiveCases() + " (" + String.format("%.02f", (double) getActiveCases() * 100 / Config.POPULATION) + "% of the total population)");
         System.out.println("------------------------------------------");
-        System.out.println("Formula: Predicted[" + predictedValue + "] * Isolation Rate[" + Config.ISOLATION_RATE + "] / Transmission Rate[" + Config.TRANSMISSION_RATE + "]\n");
+        System.out.println("Formula: (Total Cases[" + totalCases + "] - Predicted[" + predictedValue
+                + "]) * Isolation Rate[" + Config.ISOLATION_RATE + "] / Transmission Rate["
+                + Config.TRANSMISSION_RATE + "]\n"
+        );
     }
 }
