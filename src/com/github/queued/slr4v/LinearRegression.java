@@ -2,12 +2,15 @@ package com.github.queued.slr4v;
 
 import com.github.queued.slr4v.model.entity.Day;
 import com.github.queued.slr4v.utils.DatasetParser;
+import com.github.queued.slr4v.utils.Plot;
 
+import java.awt.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -113,6 +116,57 @@ public class LinearRegression {
         return (int) Math.floor(closest);
     }
 
+    private static List<Double> getPlotDayList()
+    {
+        ArrayList<Double> list = new ArrayList<>();
+
+        for (Day day : _days) {
+            list.add((double) day.getDayNumber());
+        }
+
+        return list;
+    }
+
+    private static List<Double> getPlotActiveCases()
+    {
+        ArrayList<Double> list = new ArrayList<>();
+
+        for (Day day : _days) {
+            list.add((double) day.getActiveCases());
+        }
+
+        return list;
+    }
+
+    private static List<Double> getPlotDayNewCases()
+    {
+        ArrayList<Double> list = new ArrayList<>();
+
+        int lastNewCase = 0;
+        for (int i = 0; i < _days.size(); i++) {
+            Day day = _days.get(i);
+            if (i >= 1) {
+                lastNewCase = day.getConfirmedCases() - _days.get(i - 1).getConfirmedCases();
+            }
+            list.add((double) lastNewCase);
+        }
+
+        return list;
+    }
+
+    private static List<Double> getPlotDayTotalCases()
+    {
+        ArrayList<Double> list = new ArrayList<>();
+
+        int lastNewCase = 0;
+        for (Day day : _days) {
+            lastNewCase = day.getConfirmedCases();
+            list.add((double) lastNewCase);
+        }
+
+        return list;
+    }
+
     public static void main(String[] args) throws IOException {
         bootstrap(args.length > 0 ? args[0] : ".");
 
@@ -155,7 +209,79 @@ public class LinearRegression {
         System.out.println("------------------------------------------");
         System.out.println("Formula: (Total Cases[" + totalCases + "] - Predicted[" + predictedValue
                 + "]) * Isolation Rate[" + Config.ISOLATION_RATE + "] / Transmission Rate["
-                + Config.TRANSMISSION_RATE + "]\n"
+                + Config.TRANSMISSION_RATE + "]"
         );
+        System.out.println("------------------------------------------");
+        System.out.println("Generating graph...");
+
+        /*
+        // configuring everything by default
+        Plot plot = Plot.plot(null);
+        // setting data
+        plot.series(null, Plot.data().xy(1, 2).xy(3, 4), null);
+
+        // saving sample_minimal.png
+        plot.save("sample_minimal", "png");
+        */
+
+        Plot plot = Plot.plot(Plot.plotOpts().
+                title("COVID-19 Data for Viçosa (MG) - Prediction For " + dateStr).
+                titleFont(new Font("Arial", Font.BOLD, 16)).
+                width(1024).
+                height(768).
+                padding(50).
+                labelFont(new Font("Arial", Font.PLAIN, 14)).
+                labelPadding(20).
+                legend(Plot.LegendFormat.BOTTOM)).
+                xAxis("Day", Plot.axisOpts().
+                        range(0, dayToPredict + 1). // 2 days ahead
+                        format(Plot.AxisFormat.NUMBER_INT)).
+                yAxis("Cases", Plot.axisOpts().
+                        range(0, getTotalCases(5)).// 5 cases padding
+                        format(Plot.AxisFormat.NUMBER_INT)
+                );
+
+        plot.series("Active Cases", Plot.data().
+                        xy(0, 0).
+                        xy(getPlotDayList(), getPlotActiveCases()).
+                        xy(dayToPredict, getActiveCases() + (int) newPossibleInfections),
+                Plot.seriesOpts().
+                        line(Plot.Line.NONE).
+                        lineWidth(3).
+                        color(Color.ORANGE).
+                        marker(Plot.Marker.CIRCLE).
+                        markerColor(Color.ORANGE).
+                        markerSize(12)
+        );
+
+        plot.series("New Cases", Plot.data().
+                        xy(0, 0).
+                        xy(getPlotDayList(), getPlotDayNewCases()).
+                        xy(dayToPredict, (int) newPossibleInfections), // Adds the predicted new cases
+                Plot.seriesOpts().
+                        line(Plot.Line.NONE).
+                        lineWidth(3).
+                        color(Color.RED).
+                        marker(Plot.Marker.CIRCLE).
+                        markerColor(Color.RED).
+                        markerSize(12)
+        );
+
+        plot.series("Total Cases", Plot.data().
+                        xy(0, 0).
+                        xy(getPlotDayList(), getPlotDayTotalCases()).
+                        // Sums the new possible infections with the total cases
+                        xy(dayToPredict, getTotalCases((int) newPossibleInfections)),
+                Plot.seriesOpts().
+                        line(Plot.Line.SOLID).
+                        lineWidth(3).
+                        color(Color.BLUE).
+                        marker(Plot.Marker.NONE)
+        );
+
+        String currentPath = args.length > 0 ? args[0] : ".";
+        String graphFile = currentPath + "/graphs/graph_" + dateStr.replace("/", "-");
+        plot.save(graphFile, "png");
+        System.out.println("Graph plotted and saved at: " + graphFile + ".png\n");
     }
 }

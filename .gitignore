@@ -2,5 +2,6 @@
 build
 
 dist/SLR4V.jar
+dist/graphs/*.png
 
 out
