@@ -3,7 +3,7 @@
 
 ## Dependencies
 You will need the following:
-- JDK 14
+- JDK 14 _(make sure you have the `JAVA_HOME` environment var set to your Java "bin" folder)_
 - Ant 1.8.2+
 - Git 2.24+
 
@@ -14,7 +14,8 @@ This repository contains the dataset filled accordingly until **16/06/2020** _([
 Just run ```ant build``` in your terminal (within the project directory).
 
 ## Running
-Change the variables on the [properties file](dist/viçosa.properties) and run the generated `.jar` file (with the `runJar.bat` file)
+Change the variables on the [properties file](dist/viçosa.properties) and run the generated `.jar` file (with the `runJar.bat` file).
+You should see the **output** in the console window, and a **graph** will be generated inside the `graphs` folder.
 
 ## License
 Released under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
